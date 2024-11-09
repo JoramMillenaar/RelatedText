@@ -19,5 +19,8 @@ data.json
 # Exclude macOS Finder (System Explorer) View States
 .DS_Store
 
+# Vectra database folder
+.vectra-index
+
 # Ignore for testing purposes, for now
 text-to-embedding

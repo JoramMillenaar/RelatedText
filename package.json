@@ -9,8 +9,10 @@
     "dev": "tsc && node dist/index.js"
   },
   "dependencies": {
+    "@xenova/transformers": "^2.17.2",
     "commander": "^12.1.0",
-    "express": "^4.x"
+    "express": "^4.x",
+    "vectra": "^0.9.0"
   },
   "devDependencies": {
     "@types/express": "^4.x",
