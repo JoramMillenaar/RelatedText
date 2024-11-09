@@ -1,0 +1,161 @@
+openapi: 3.0.0
+info:
+  title: Text Similarity Service
+  version: 1.0.0
+  description: A service to create, update, delete, and find similar text embeddings, storing them in a local vector database.
+
+paths:
+  /embeddings:
+    post:
+      summary: Embed and store the text
+      description: Embeds a provided text and stores it with the given ID or metadata. Supports large texts by splitting into multiple embeddings.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: An optional unique identifier for the text.
+                text:
+                  type: string
+                  description: The text to embed.
+                metadata:
+                  type: object
+                  additionalProperties: true
+                  description: Optional metadata associated with the text (alternative to `id`).
+              required:
+                - text
+                - id
+      responses:
+        '201':
+          description: Embedding created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: The ID of the stored embedding.
+                    
+        '409':
+          description: Conflict - ID already exists.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "ID already exists. Please use a unique ID or update the existing embedding."
+
+  /embeddings/{id}:
+    put:
+      summary: Update an existing embedding by ID
+      description: Updates the embedding of a text with the specified ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ID of the embedding to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  description: The new text to update the embedding with.
+      responses:
+        '200':
+          description: Embedding updated successfully.
+        '404':
+          description: Not Found - ID does not exist.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "ID not found. Cannot update a non-existent embedding."
+
+    delete:
+      summary: Delete an embedding by ID
+      description: Deletes the embedding associated with the specified ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The ID of the embedding to delete.
+      responses:
+        '204':
+          description: Embedding deleted successfully.
+        '404':
+          description: Not Found - ID does not exist.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "ID not found. Cannot delete a non-existent embedding."
+
+  /similar:
+    post:
+      summary: Find similar texts
+      description: Finds and returns IDs, similarity values, and metadata of texts that are most similar to the provided text.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  description: The text to find similar embeddings for.
+                limit:
+                  type: integer
+                  description: The maximum number of similar texts to return.
+                  default: 5
+      responses:
+        '200':
+          description: Similar texts found successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      description: The ID of the similar text.
+                    similarity:
+                      type: number
+                      format: float
+                      description: The similarity score between the provided text and this similar text.
+                    metadata:
+                      type: object
+                      additionalProperties: true
+                      description: Metadata associated with the similar text.
+                description: List of similar texts with their IDs, similarity scores, and metadata.
+
+  /embeddings/all:
+    delete:
+      summary: Remove all embeddings
+      description: Deletes all embeddings from the vector database.
+      responses:
+        '204':
+          description: All embeddings deleted successfully.
