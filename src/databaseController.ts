@@ -2,6 +2,12 @@ import { LocalIndex } from 'vectra';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+export type QueryResult = {
+    id: string
+    score: number
+    metadata: Record<string, any>
+}
+
 // Manually define __filename and __dirname for ES module compatibility
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,5 +29,15 @@ export class VectraDatabaseController {
             vector: Array.from(embedding),
             metadata: { id: id, ...metadata }
         });
+    }
+
+    async querySimilar(embedding: Float32Array, limit: number): Promise<QueryResult[]> {
+        const results = await this.index.queryItems(Array.from(embedding), limit);
+        console.log(results);
+        return results.map(result => ({
+            id: result.item.metadata.id.toString(),
+            score: result.score,
+            metadata: result.item.metadata
+        }));
     }
 }

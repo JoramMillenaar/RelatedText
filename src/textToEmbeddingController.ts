@@ -1,5 +1,5 @@
 import { XenovaEmbeddingService } from '../text-to-embedding/index.js';
-import { VectraDatabaseController } from './databaseController.js';
+import { VectraDatabaseController, QueryResult } from './databaseController.js';
 
 
 export class TextToEmbeddingController {
@@ -30,7 +30,19 @@ export class TextToEmbeddingController {
     async destroyAll(): Promise<void> {
 
     }
-    async retrieveSimilar(text: string, limit: number): Promise<void> {
+    async retrieveSimilar(text: string, limit: number): Promise<QueryResult[]> {
+        const embeddingChunks = await this.embedder.generateEmbeddingChunks(text);
+        const aggregatedResults: QueryResult[] = [];
 
+        for (const embeddingChunk of embeddingChunks) {
+            const results = await this.db.querySimilar(embeddingChunk.embedding, limit);
+            aggregatedResults.push(...results);
+        }
+
+        const topResults = aggregatedResults
+            .sort((a, b) => b.score - a.score)
+            .slice(0, limit);
+
+        return topResults;
     }
 }

@@ -39,19 +39,28 @@ app.delete('/embeddings/all', function (req, res) {
 })
 
 /* Similar */
-app.post('/similar', function (req, res) {
-	res.status(400).send('Missing required parameter: text')
-	res.status(400).send('Missing required parameter: limit')
-	res.status(200).send([
-		{
-			"id": "string",
-			"similarity": 0,
-			"metadata": {
-				"additionalProp1": {}
-			}
+app.post('/similar', async (req, res) => {
+	try {
+		const { text, limit } = req.body;
+		if (!text) {
+			return res.status(400).send('Missing required parameter: text');
 		}
-	])
-})
+		if (typeof limit !== 'number') {
+			return res.status(400).send('Missing required parameter: limit');
+		}
+
+		const results = await controller.retrieveSimilar(text, limit);
+		const response = results.map(result => ({
+			id: result.id,
+			similarity: result.score,
+			metadata: result.metadata
+		}));
+		return res.status(200).send(response);
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send('An error occurred while processing the request');
+	}
+});
 
 program
 	.option('-p, --port <number>', 'port to listen on', '3000')
