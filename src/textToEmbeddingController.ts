@@ -19,11 +19,12 @@ export class TextToEmbeddingController {
     async create(id: string, text: string, metadata: Record<string, string>): Promise<void> {
         const embeddingChunks = await this.embedder.generateEmbeddingChunks(text);
         for (const embeddingChunk of embeddingChunks) {
-            this.db.create(id, embeddingChunk.embedding, metadata);
+            await this.db.create(id, embeddingChunk.embedding, metadata);
         }
     }
-    async update(id: string, text: string, metadata: object): Promise<void> {
-
+    async update(id: string, text: string, metadata: Record<string, string>): Promise<void> {
+        await this.db.delete(id);
+        await this.create(id, text, metadata);
     }
     async destroy(id: string): Promise<void> {
         await this.db.delete(id);

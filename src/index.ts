@@ -30,11 +30,6 @@ app.post('/embeddings', async (req, res) => {
 		}
 	}
 });
-app.put('/embeddings/:id', function (req, res) {
-	res.status(200).send('Embedding updated successfully.')
-	res.status(400).send('Missing required parameter: text')
-	res.status(404).send("ID not found. Cannot update a non-existent embedding.")
-})
 app.delete('/embeddings/all', async (req, res) => {
 	try {
 		await controller.destroyAll();
@@ -42,6 +37,23 @@ app.delete('/embeddings/all', async (req, res) => {
 	} catch (error) {
 		console.error(error);
 		return res.status(500).send('An error occurred while processing the request');
+	}
+})
+app.put('/embeddings', async (req, res) => {
+	try {
+		if (!req.body || !req.body.id || !req.body.text) {
+			return res.status(400).json({ error: 'Missing required parameter', message: 'Both "id" and "text" are required.' });
+		}
+		const { id, text, metadata } = req.body;
+		await controller.update(id, text, metadata);
+		res.status(200).send('Embedding updated successfully.');
+	} catch (error) {
+		if (error instanceof EmbeddingDoesNotExist) {
+			return res.status(404).send("No embeddings with that ID found. Cannot update a non-existent embedding.");
+		} else {
+			console.error(error);
+			return res.status(500).send('An error occurred while processing the request');
+		}
 	}
 })
 app.delete('/embeddings', async (req, res) => {
