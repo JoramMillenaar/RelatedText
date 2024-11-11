@@ -30,6 +30,10 @@ export class VectraDatabaseController {
             metadata: { id: id, ...metadata }
         });
     }
+    async exists(id: string): Promise<boolean> {
+        const results = await this.index.listItemsByMetadata({id: id})
+        return results.length > 0;
+    }
 
     async dropDatabase(): Promise<void> {
         await this.index.deleteIndex();

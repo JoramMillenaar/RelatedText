@@ -1,6 +1,7 @@
 import express from 'express';
 import { Command } from 'commander';
 import { TextToEmbeddingController } from './textToEmbeddingController.js';
+import { EmbeddingAlreadyExists } from './errors.js';
 
 const program = new Command();
 
@@ -21,8 +22,12 @@ app.post('/embeddings', async (req, res) => {
 		await controller.create(id, text, metadata);
 		res.status(201).json({ id: id, message: "Text embedded and stored successfully." });
 	} catch (error) {
-		console.error(error);
-		res.status(500).json({ error: 'Internal Server Error', message: 'An error occurred while embedding the text.' });
+		if (error instanceof EmbeddingAlreadyExists) {
+			return res.status(409).send(error.message);
+		} else {
+			console.error(error);
+			res.status(500).json({ error: 'Internal Server Error', message: 'An error occurred while embedding the text.' });
+		}
 	}
 });
 app.put('/embeddings/:id', function (req, res) {
