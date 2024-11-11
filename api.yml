@@ -4,11 +4,15 @@ info:
   version: 1.0.0
   description: A service to create, update, delete, and find similar text embeddings, storing them in a local vector database.
 
+servers:
+  - url: 'http://localhost:3000'
+    description: Development server
+
 paths:
   /embeddings:
     post:
       summary: Embed and store the text
-      description: Embeds a provided text and stores it with the given ID or metadata. Supports large texts by splitting into multiple embeddings.
+      description: Embeds provided text and stores it with the given ID and metadata. Supports large texts by splitting into multiple embeddings.
       requestBody:
         required: true
         content:
@@ -18,17 +22,17 @@ paths:
               properties:
                 id:
                   type: string
-                  description: An optional unique identifier for the text.
+                  description: A unique identifier for the text.
                 text:
                   type: string
                   description: The text to embed.
                 metadata:
                   type: object
                   additionalProperties: true
-                  description: Optional metadata associated with the text (alternative to `id`).
+                  description: Optional metadata associated with the text.
               required:
-                - text
                 - id
+                - text
       responses:
         '201':
           description: Embedding created successfully.
@@ -40,7 +44,9 @@ paths:
                   id:
                     type: string
                     description: The ID of the stored embedding.
-                    
+                  message:
+                    type: string
+                    example: Text embedded and stored successfully.
         '409':
           description: Conflict - ID already exists.
           content:
@@ -55,7 +61,7 @@ paths:
   /embeddings/{id}:
     put:
       summary: Update an existing embedding by ID
-      description: Updates the embedding of a text with the specified ID.
+      description: Updates the embedding of text with the specified ID.
       parameters:
         - in: path
           name: id
@@ -73,6 +79,10 @@ paths:
                 text:
                   type: string
                   description: The new text to update the embedding with.
+                metadata:
+                  type: object
+                  additionalProperties: true
+                  description: Optional metadata to update along with the text.
       responses:
         '200':
           description: Embedding updated successfully.
@@ -85,7 +95,7 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "ID not found. Cannot update a non-existent embedding."
+                    example: "No embeddings with that ID found. Cannot update a non-existent embedding."
 
     delete:
       summary: Delete an embedding by ID
@@ -109,12 +119,20 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "ID not found. Cannot delete a non-existent embedding."
+                    example: "No embeddings with that ID found. Cannot delete a non-existent embedding."
+
+  /embeddings/all:
+    delete:
+      summary: Remove all embeddings
+      description: Deletes all embeddings from the vector database.
+      responses:
+        '204':
+          description: All embeddings deleted successfully.
 
   /similar:
     post:
       summary: Find similar texts
-      description: Finds and returns IDs, similarity values, and metadata of texts that are most similar to the provided text.
+      description: Finds and returns IDs, similarity values, and metadata of texts that are most similar to the provided text based on a similarity threshold.
       requestBody:
         required: true
         content:
@@ -150,12 +168,3 @@ paths:
                       type: object
                       additionalProperties: true
                       description: Metadata associated with the similar text.
-                description: List of similar texts with their IDs, similarity scores, and metadata.
-
-  /embeddings/all:
-    delete:
-      summary: Remove all embeddings
-      description: Deletes all embeddings from the vector database.
-      responses:
-        '204':
-          description: All embeddings deleted successfully.
