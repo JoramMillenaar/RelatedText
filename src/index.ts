@@ -9,7 +9,6 @@ const program = new Command();
 const app = express();
 app.use(express.json());
 const controller = new TextToEmbeddingController();
-await controller.ready()
 
 /* Embeddings */
 app.post('/embeddings', async (req, res) => {
@@ -56,12 +55,9 @@ app.put('/embeddings', async (req, res) => {
 		}
 	}
 })
-app.delete('/embeddings', async (req, res) => {
+app.delete('/embeddings/:id', async (req, res) => {
 	try {
-		const { id } = req.body;
-		if (!id) {
-			return res.status(400).json({ error: 'Missing required parameter', message: '"id" is required.' });
-		}
+    	const { id } = req.params;
 		await controller.destroy(id);
 		return res.status(204).send("Embedding deleted successfully.")
 	} catch (error) {
@@ -110,11 +106,20 @@ program.parse(process.argv);
 const options = program.opts();
 const port = options.port;
 
-const server = app.listen(port, function () {
-	const address = server.address()
-	if (typeof address === 'string') {
-		console.log(`Listening on ${address}`)
-	} else if (address) {
-		console.log(`Listening on ${address.port}`)
+async function init() {
+	try {
+		await controller.ready();
+		const server = app.listen(port, function () {
+			const address = server.address();
+			if (typeof address === 'string') {
+				console.log(`Listening on ${address}`)
+			} else if (address) {
+				console.log(`Listening on ${address.port}`)
+			}
+		});
+	} catch (error) {
+		console.error("Failed to initialize the controller:", error);
 	}
-})
+}
+
+init();
