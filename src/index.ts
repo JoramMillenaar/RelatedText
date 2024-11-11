@@ -30,12 +30,18 @@ app.put('/embeddings/:id', function (req, res) {
 	res.status(400).send('Missing required parameter: text')
 	res.status(404).send("ID not found. Cannot update a non-existent embedding.")
 })
+app.delete('/embeddings/all', async (req, res) => {
+	try {
+		await controller.destroyAll();
+		return res.status(204).send("All embeddings deleted successfully.");
+	} catch (error) {
+		console.error(error);
+		return res.status(500).send('An error occurred while processing the request');
+	}
+})
 app.delete('/embeddings/:id', function (req, res) {
 	res.status(204).send("Embedding deleted successfully.")
 	res.status(404).send("ID not found. Cannot delete a non-existent embedding.")
-})
-app.delete('/embeddings/all', function (req, res) {
-	res.status(204).send("All embeddings deleted successfully.")
 })
 
 /* Similar */

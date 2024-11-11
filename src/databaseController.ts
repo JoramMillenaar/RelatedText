@@ -31,9 +31,12 @@ export class VectraDatabaseController {
         });
     }
 
+    async dropDatabase(): Promise<void> {
+        await this.index.deleteIndex();
+    }
+
     async querySimilar(embedding: Float32Array, limit: number): Promise<QueryResult[]> {
         const results = await this.index.queryItems(Array.from(embedding), limit);
-        console.log(results);
         return results.map(result => ({
             id: result.item.metadata.id.toString(),
             score: result.score,

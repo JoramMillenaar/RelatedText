@@ -28,7 +28,8 @@ export class TextToEmbeddingController {
 
     }
     async destroyAll(): Promise<void> {
-
+        await this.db.dropDatabase();
+        await this.db.ready();
     }
     async retrieveSimilar(text: string, limit: number): Promise<QueryResult[]> {
         const embeddingChunks = await this.embedder.generateEmbeddingChunks(text);
