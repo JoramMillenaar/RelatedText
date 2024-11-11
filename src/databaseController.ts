@@ -1,11 +1,17 @@
 import { LocalIndex } from 'vectra';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { EmbeddingAlreadyExists, EmbeddingDoesNotExist } from './errors.js';
 
 export type QueryResult = {
     id: string
     score: number
     metadata: Record<string, any>
+}
+
+type FilterResult = {
+    db_id: string
+    id: string
 }
 
 // Manually define __filename and __dirname for ES module compatibility
@@ -25,14 +31,32 @@ export class VectraDatabaseController {
     }
 
     async create(id: string, embedding: Float32Array, metadata: Record<string, string>): Promise<void> {
+        if ((await this.filterByID(id)).length > 0) {
+            throw new EmbeddingAlreadyExists(`Embedding with ID '${id}' already exists`);
+        }
         await this.index.insertItem({
             vector: Array.from(embedding),
             metadata: { id: id, ...metadata }
         });
     }
-    async exists(id: string): Promise<boolean> {
-        const results = await this.index.listItemsByMetadata({id: id})
-        return results.length > 0;
+
+    async delete(id: string): Promise<void> {
+        const existingItems = await this.filterByID(id);
+        if (existingItems.length > 0) {
+            for (const item of existingItems) {
+                this.index.deleteItem(item.db_id);
+            }
+        } else {
+            throw new EmbeddingDoesNotExist(`Embedding with ID ${id} does not exist`);
+        }
+    }
+
+    async filterByID(id: string): Promise<FilterResult[]> {
+        const items = await this.index.listItemsByMetadata({ id: id });
+        return items.map(item => ({
+            db_id: item.id,
+            id: item.metadata.id.toString()
+        }));
     }
 
     async dropDatabase(): Promise<void> {

@@ -1,7 +1,7 @@
 import express from 'express';
 import { Command } from 'commander';
 import { TextToEmbeddingController } from './textToEmbeddingController.js';
-import { EmbeddingAlreadyExists } from './errors.js';
+import { EmbeddingAlreadyExists, EmbeddingDoesNotExist } from './errors.js';
 
 const program = new Command();
 
@@ -44,9 +44,22 @@ app.delete('/embeddings/all', async (req, res) => {
 		return res.status(500).send('An error occurred while processing the request');
 	}
 })
-app.delete('/embeddings/:id', function (req, res) {
-	res.status(204).send("Embedding deleted successfully.")
-	res.status(404).send("ID not found. Cannot delete a non-existent embedding.")
+app.delete('/embeddings', async (req, res) => {
+	try {
+		const { id } = req.body;
+		if (!id) {
+			return res.status(400).json({ error: 'Missing required parameter', message: '"id" is required.' });
+		}
+		await controller.destroy(id);
+		return res.status(204).send("Embedding deleted successfully.")
+	} catch (error) {
+		if (error instanceof EmbeddingDoesNotExist) {
+			return res.status(404).send("No embeddings with that ID found. Cannot delete a non-existent embedding.")
+		} else {
+			console.error(error);
+			return res.status(500).send('An error occurred while processing the request');
+		}
+	}
 })
 
 /* Similar */

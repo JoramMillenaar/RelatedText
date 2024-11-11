@@ -17,9 +17,6 @@ export class TextToEmbeddingController {
     }
 
     async create(id: string, text: string, metadata: Record<string, string>): Promise<void> {
-        if (await this.db.exists(id)) {
-            throw new EmbeddingAlreadyExists(`Embedding with ID '${id}' already exists`);
-        }
         const embeddingChunks = await this.embedder.generateEmbeddingChunks(text);
         for (const embeddingChunk of embeddingChunks) {
             this.db.create(id, embeddingChunk.embedding, metadata);
@@ -29,7 +26,7 @@ export class TextToEmbeddingController {
 
     }
     async destroy(id: string): Promise<void> {
-
+        await this.db.delete(id);
     }
     async destroyAll(): Promise<void> {
         await this.db.dropDatabase();
