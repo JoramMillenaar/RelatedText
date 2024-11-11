@@ -1,14 +1,13 @@
-import { XenovaEmbeddingService } from '../text-to-embedding/index.js';
+import { XenovaEmbeddingController } from './embedderController.js'
 import { VectraDatabaseController, QueryResult } from './databaseController.js';
-import { EmbeddingAlreadyExists } from './errors.js';
 
 
 export class TextToEmbeddingController {
-    private embedder: XenovaEmbeddingService;
+    private embedder: XenovaEmbeddingController;
     private db: VectraDatabaseController;
 
     constructor() {
-        this.embedder = new XenovaEmbeddingService();
+        this.embedder = new XenovaEmbeddingController();
         this.db = new VectraDatabaseController();
     }
     async ready(): Promise<void> {

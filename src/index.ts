@@ -1,7 +1,7 @@
 import express from 'express';
 import { Command } from 'commander';
-import { TextToEmbeddingController } from './textToEmbeddingController.js';
-import { EmbeddingAlreadyExists, EmbeddingDoesNotExist } from './errors.js';
+import { TextToEmbeddingController } from './controllers/appController.js';
+import { EmbeddingAlreadyExists, EmbeddingDoesNotExist } from './errors/databaseErrors.js';
 
 const program = new Command();
 

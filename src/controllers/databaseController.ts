@@ -1,7 +1,7 @@
 import { LocalIndex } from 'vectra';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { EmbeddingAlreadyExists, EmbeddingDoesNotExist } from './errors.js';
+import { EmbeddingAlreadyExists, EmbeddingDoesNotExist } from '../errors/databaseErrors.js';
 
 export type QueryResult = {
     id: string
