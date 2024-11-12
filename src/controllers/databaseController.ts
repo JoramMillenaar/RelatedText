@@ -1,6 +1,4 @@
 import { LocalIndex } from 'vectra';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { EmbeddingAlreadyExists, EmbeddingDoesNotExist } from '../errors/databaseErrors.js';
 
 export type QueryResult = {
@@ -14,14 +12,10 @@ type FilterResult = {
     id: string
 }
 
-// Manually define __filename and __dirname for ES module compatibility
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 export class VectraDatabaseController {
     private index: LocalIndex;
     constructor() {
-        this.index = new LocalIndex(path.join(__dirname, '..', '.vectra-index'));
+        this.index = new LocalIndex('.vectra-index');
     }
 
     async ready(): Promise<void> {
