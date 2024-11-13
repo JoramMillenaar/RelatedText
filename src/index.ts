@@ -1,10 +1,12 @@
 import express from 'express';
 import { TextToEmbeddingController } from './controllers/appController.js';
 import { EmbeddingAlreadyExists, EmbeddingDoesNotExist } from './errors/databaseErrors.js';
+import cors from 'cors';
 
 export async function startServer(port = 3000) {
 	const app = express();
 	app.use(express.json());
+	app.use(cors());
 	const controller = new TextToEmbeddingController();
 
 	/* Embeddings */
