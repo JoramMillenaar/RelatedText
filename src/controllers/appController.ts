@@ -1,13 +1,17 @@
-import { XenovaEmbeddingController } from './embedderController.js'
+import { DocumentEmbeddingController } from './embedderController.js'
 import { VectraDatabaseController, QueryResult } from './databaseController.js';
+import { ParagraphChunker } from '../services/ChunkingService.js';
+import { MeanPooler } from '../services/PoolingService.js';
 
 
 export class TextToEmbeddingController {
-    private embedder: XenovaEmbeddingController;
+    private embedder: DocumentEmbeddingController;
     private db: VectraDatabaseController;
 
     constructor() {
-        this.embedder = new XenovaEmbeddingController();
+        const chunker = new ParagraphChunker();
+        const pooler = new MeanPooler();
+        this.embedder = new DocumentEmbeddingController(chunker, pooler);
         this.db = new VectraDatabaseController();
     }
     async ready(): Promise<void> {
@@ -16,10 +20,8 @@ export class TextToEmbeddingController {
     }
 
     async create(id: string, text: string, metadata: Record<string, string>): Promise<void> {
-        const embeddingChunks = await this.embedder.generateEmbeddingChunks(text);
-        for (const embeddingChunk of embeddingChunks) {
-            await this.db.create(id, embeddingChunk.embedding, metadata);
-        }
+        const documentEmbedding = await this.embedder.generateDocumentEmbedding(text);
+        await this.db.create(id, documentEmbedding, metadata);
     }
     async update(id: string, text: string, metadata: Record<string, string>): Promise<void> {
         await this.db.delete(id);
@@ -33,18 +35,7 @@ export class TextToEmbeddingController {
         await this.db.ready();
     }
     async retrieveSimilar(text: string, limit: number): Promise<QueryResult[]> {
-        const embeddingChunks = await this.embedder.generateEmbeddingChunks(text);
-        const aggregatedResults: QueryResult[] = [];
-
-        for (const embeddingChunk of embeddingChunks) {
-            const results = await this.db.querySimilar(embeddingChunk.embedding, limit);
-            aggregatedResults.push(...results);
-        }
-
-        const topResults = aggregatedResults
-            .sort((a, b) => b.score - a.score)
-            .slice(0, limit);
-
-        return topResults;
+        const documentEmbedding = await this.embedder.generateDocumentEmbedding(text);
+        return await this.db.querySimilar(documentEmbedding, limit);
     }
 }

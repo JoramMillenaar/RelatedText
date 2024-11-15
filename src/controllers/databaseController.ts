@@ -26,9 +26,9 @@ export class VectraDatabaseController {
 
     async create(id: string, embedding: Float32Array, metadata: Record<string, string>): Promise<void> {
         // TODO: feature idea; add text hash to metadata for seeing if it's changed later
-        if ((await this.filterByID(id)).length > 0) {
-            throw new EmbeddingAlreadyExists(`Embedding with ID '${id}' already exists`);
-        }
+        // if ((await this.filterByID(id)).length > 0) {
+        //     throw new EmbeddingAlreadyExists(`Embedding with ID '${id}' already exists`);
+        // }
         await this.index.insertItem({
             vector: Array.from(embedding),
             metadata: { id: id, ...metadata }
