@@ -1,7 +1,5 @@
 import { DocumentEmbeddingController } from './embedderController.js'
 import { VectraDatabaseController, QueryResult } from './databaseController.js';
-import { ParagraphChunker } from '../services/ChunkingService.js';
-import { MeanPooler } from '../services/PoolingService.js';
 
 
 export class TextToEmbeddingController {
@@ -9,9 +7,7 @@ export class TextToEmbeddingController {
     private db: VectraDatabaseController;
 
     constructor() {
-        const chunker = new ParagraphChunker();
-        const pooler = new MeanPooler();
-        this.embedder = new DocumentEmbeddingController(chunker, pooler);
+        this.embedder = new DocumentEmbeddingController();
         this.db = new VectraDatabaseController();
     }
     async ready(): Promise<void> {
