@@ -1,13 +1,22 @@
 {
-  "name": "related-text",
+  "name": "relate-text",
   "version": "1.0.0",
   "type": "module",
   "main": "dist/index.js",
+  "bin": {
+    "relate-text": "./dist/bin/cli.js"
+  },
   "scripts": {
     "build": "tsc",
-    "run": "node dist/index.js",
-    "build & run": "tsc && node dist/index.js"
+    "postbuild": "chmod +x ./dist/bin/cli.js",
+    "prepare": "npm run build",
+    "build & run server": "tsc && relate-text start-server --port 3000"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "dependencies": {
     "@xenova/transformers": "^2.17.2",
     "commander": "^12.1.0",
@@ -20,5 +29,11 @@
     "@types/express": "^4.x",
     "ts-node": "^10.x",
     "typescript": "^4.x"
+  },
+  "author": "Joram Millenaar",
+  "license": "GPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JoramMillenaar/relate-text.git"
   }
 }
