@@ -46,7 +46,8 @@ export class VectraDatabaseController {
     }
 
     async filterByID(id: string): Promise<FilterResult[]> {
-        const items = await this.index.listItemsByMetadata({ id: id });
+        // @ts-ignore
+        const items = await this.index.listItemsByMetadata({ "id": { $eq: id } });
         return items.map(item => ({
             db_id: item.id,
             id: item.metadata.id.toString()
