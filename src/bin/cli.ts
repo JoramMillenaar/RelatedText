@@ -7,6 +7,15 @@ import { startServer } from '../server.js';
 const program = new Command();
 const controller = new TextToEmbeddingController();
 
+async function readStdin(): Promise<string> {
+  return new Promise((resolve, reject) => {
+    let data = '';
+    process.stdin.on('data', (chunk) => (data += chunk));
+    process.stdin.on('end', () => resolve(data.trim()));
+    process.stdin.on('error', (err) => reject(err));
+  });
+}
+
 (async () => {
   await controller.ready();
 
@@ -15,11 +24,15 @@ const controller = new TextToEmbeddingController();
     .command('create')
     .description('Create a text embedding')
     .requiredOption('-i, --id <id>', 'Unique identifier for the embedding')
-    .requiredOption('-t, --text <text>', 'Text to embed')
     .option('-m, --metadata <metadata>', 'Additional metadata as JSON')
     .action(async (opts) => {
       const metadata = opts.metadata ? JSON.parse(opts.metadata) : {};
-      await controller.create(opts.id, opts.text, metadata);
+      const text = opts.text || (await readStdin());
+      if (!text) {
+        console.error('Error: Text is required (either via --text or stdin)');
+        process.exit(1);
+      }
+      await controller.create(opts.id, text, metadata);
       console.log(`Embedding created successfully for ID: ${opts.id}`);
     });
 
@@ -28,11 +41,15 @@ const controller = new TextToEmbeddingController();
     .command('update')
     .description('Update an existing embedding')
     .requiredOption('-i, --id <id>', 'Unique identifier for the embedding')
-    .requiredOption('-t, --text <text>', 'Updated text to embed')
     .option('-m, --metadata <metadata>', 'Updated metadata as JSON')
     .action(async (opts) => {
       const metadata = opts.metadata ? JSON.parse(opts.metadata) : {};
-      await controller.update(opts.id, opts.text, metadata);
+      const text = opts.text || (await readStdin());
+      if (!text) {
+        console.error('Error: Text is required (either via --text or stdin)');
+        process.exit(1);
+      }
+      await controller.update(opts.id, text, metadata);
       console.log(`Embedding updated successfully for ID: ${opts.id}`);
     });
 
@@ -59,11 +76,28 @@ const controller = new TextToEmbeddingController();
   program
     .command('similar')
     .description('Find similar text')
-    .requiredOption('-t, --text <text>', 'Text to find similarities for')
+    .option('-t, --text <text>', 'Text to find similarities for')
     .requiredOption('-l, --limit <limit>', 'Number of results to retrieve', parseInt)
     .action(async (opts) => {
-      const results = await controller.retrieveSimilar(opts.text, opts.limit);
-      console.log('Similar results:', results);
+      try {
+        // Read text from stdin if --text is not provided
+        const text = opts.text || (await new Promise<string>((resolve, reject) => {
+          let input = '';
+          process.stdin.on('data', (chunk) => (input += chunk));
+          process.stdin.on('end', () => resolve(input.trim()));
+          process.stdin.on('error', reject);
+        }));
+
+        if (!text) {
+          throw new Error('Text is required (either via --text or stdin)');
+        }
+
+        const results = await controller.retrieveSimilar(text, opts.limit);
+        console.log(JSON.stringify(results, null, 2));
+      } catch (error) {
+        console.error('Error:', error);
+        process.exit(1);
+      }
     });
 
   // Start server
